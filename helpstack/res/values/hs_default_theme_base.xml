@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- Default/Base Themes -->
+    <!-- The base characteristics are defined in the default themes -->
+   
+    <style name="HSAppBaseTheme" parent="Theme.AppCompat.Light">
+    </style>
+    
+    <!-- Background default Style -->
+    <style name="hs_background_defaultStyle">
+        <item name="android:background">@color/hs_background_color</item>
+    </style>
+    
+    <!-- Main ListView default Style -->
+    <style name="hs_listView_defaultStyle">
+        <item name="android:cacheColorHint">@color/hs_transparent_color</item>
+        <item name="android:divider">@color/hs_listView_divider_color</item>
+        <item name="android:dividerHeight">@dimen/hs_listView_divider_height</item>
+        <item name="android:listSelector">@color/hs_listView_selector_color</item>
+    </style>
+    
+    <!-- Main ListView header background default Style -->
+    <style name="hs_listView_headerBackground_defaultStyle">
+        <item name="android:background">@color/hs_header_background_color</item>
+    </style>
+    
+    <!-- Main ListView child view background default Style -->
+    <style name="hs_listView_childBackground_defaultStyle">
+        <item name="android:background">@color/hs_childView_background_color</item>
+    </style>
+    
+    <!-- Main ListView header text default Style -->
+    <style name="hs_listView_headerText_defaultStyle">
+        <item name="android:paddingTop">5dp</item>
+        <item name="android:paddingBottom">5dp</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:padding">10dp</item>
+        <item name="android:textSize">@dimen/hs_listView_header_TextSize</item>
+    </style>
+    
+    <!-- Main ListView child text default Style -->
+    <style name="hs_listView_childText_defaultStyle">
+        <item name="android:paddingTop">5dp</item>
+        <item name="android:paddingBottom">5dp</item>
+        <item name="android:padding">10dp</item>
+        <item name="android:textColor">#000000</item>
+        <item name="android:typeface">sans</item>
+        <item name="android:textSize">@dimen/hs_listView_ChildView_TextSize</item>
+    </style>
+    
+    <!-- Chat screen - right chat bubble color, if using this no need to change property of bubble and bubble triangle -->
+    <color name="hs_rightchat_bubblecolor">@color/hs_rightchat_bubblecolor_defaultColor</color>
+    
+    <!-- Chat screen - right chat bubble default Style -->
+    <style name="hs_rightChatBubble_defaultStyle">
+        <item name="android:background">@drawable/right_chat_bubble</item> 
+    </style>
+    
+    <!-- Chat screen - right chat bubble triangle default Style -->
+    <style name="hs_rightChatBubbleTriangle_defaultStyle">
+        <item name="android:background">@drawable/right_chat_bubble_triangle</item> 
+    </style>
+    
+    <!-- Chat screen - right chat bubble color, if using this no need to change property of bubble and bubble triangle -->
+    <color name="hs_leftchat_bubblecolor">@color/hs_leftchat_bubblecolor_defaultColor</color>
+    
+    <!-- Chat screen - left chat bubble default Style -->
+    <style name="hs_leftChatBubble_defaultStyle">
+        <item name="android:background">@drawable/left_chat_bubble</item> 
+    </style>
+    
+    <!-- Chat screen - left chat bubble triangle default Style -->
+    <style name="hs_leftChatBubbleTriangle_defaultStyle">
+        <item name="android:background">@drawable/left_chat_bubble_triangle</item> 
+    </style>
+    
+    <!-- Chat screen - message text default Style -->
+    <style name="hs_messageText_defaultStyle">
+        <item name="android:paddingTop">3dp</item>
+        <item name="android:typeface">sans</item>
+        <item name="android:textSize">@dimen/hs_message_TextSize</item>
+        <item name="android:gravity">left</item>
+        <item name="android:linksClickable">true</item>
+        <item name="android:textColorLink">#306EFF</item>
+    </style>
+    
+    <!-- Chat screen - left chat message text default Style -->
+    <style name="hs_leftmessageText_defaultStyle" parent="@style/hs_messageText_defaultStyle">
+        <item name="android:textColor">@color/hs_leftchat_messageTextcolor</item>
+    </style>
+    
+    <!-- Chat screen - right chat message text default Style -->
+    <style name="hs_rightmessageText_defaultStyle" parent="@style/hs_messageText_defaultStyle">
+        <item name="android:textColor">@color/hs_rightchat_messageTextcolor</item>
+    </style>
+
+    <!-- Chat screen - more info text(Sender name and message time) default Style -->
+    <style name="hs_smallText_defaultStyle">
+        <item name="android:textColor">@color/hs_message_moreinfoTextColor</item>
+        <item name="android:typeface">sans</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textSize">@dimen/hs_small_TextSize</item>
+        <item name="android:maxWidth">@dimen/hs_smallTextMaxWidth</item>
+    </style>
+    
+    <!-- Button default Style -Report issue button -->
+    <style name="hs_button_defaultStyle">
+        <item name="android:background">@color/hs_button_background_color</item>
+        <item name="android:textColor">@color/hs_buttonTextcolor</item>
+        <item name="android:layout_marginTop">@dimen/hs_button_marginSize</item>
+        <item name="android:textSize">@dimen/hs_button_textSize</item>
+    </style>
+    
+    <!-- Edit text default Style -->
+    <style name="hs_editText_defaultStyle">
+        <item name="android:inputType">textCapSentences</item>
+    </style>
+
+</resources>

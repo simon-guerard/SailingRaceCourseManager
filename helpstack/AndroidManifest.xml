@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.tenmiles.helpstack"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-sdk
+        android:minSdkVersion="9"
+        android:targetSdkVersion="22" />
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <application >
+        <activity
+            android:name="com.tenmiles.helpstack.activities.HomeActivity"
+            android:label="@string/hs_app_name" android:exported="false">
+            <intent-filter>
+                <action android:name="com.tenmiles.helpstack.ShowHelp"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.tenmiles.helpstack.activities.NewIssueActivity"
+            android:windowSoftInputMode="adjustResize" >
+        </activity>
+        <activity
+            android:name="com.tenmiles.helpstack.activities.NewUserActivity"
+            android:windowSoftInputMode="adjustResize" >
+        </activity>
+        <activity
+            android:name="com.tenmiles.helpstack.activities.IssueDetailActivity"
+            android:windowSoftInputMode="stateAlwaysHidden|adjustResize" >
+        </activity>
+        <activity
+            android:name="com.tenmiles.helpstack.activities.ArticleActivity">
+        </activity>
+        <activity
+            android:name="com.tenmiles.helpstack.activities.SectionActivity">
+        </activity>
+        <activity
+            android:name="com.tenmiles.helpstack.activities.ImageAttachmentDisplayActivity">
+        </activity>
+        <activity
+            android:name="com.tenmiles.helpstack.activities.EditAttachmentActivity"
+            android:screenOrientation="portrait">
+        </activity>
+
+        <receiver
+            android:name="com.tenmiles.helpstack.service.AttachmentDownloadReceiver"
+            android:enabled="true" >
+            <intent-filter>
+                <action android:name="android.intent.action.DOWNLOAD_COMPLETE" />
+                <action android:name="android.intent.action.DOWNLOAD_NOTIFICATION_CLICKED" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
+    </application>
+
+</manifest>
