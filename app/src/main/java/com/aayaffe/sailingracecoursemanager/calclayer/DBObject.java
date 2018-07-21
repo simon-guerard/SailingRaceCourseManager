@@ -4,11 +4,10 @@ import android.graphics.Color;
 import android.location.Location;
 
 import com.aayaffe.sailingracecoursemanager.R;
+import com.aayaffe.sailingracecoursemanager.general.GeneralUtils;
 import com.aayaffe.sailingracecoursemanager.geographical.AviLocation;
 import com.aayaffe.sailingracecoursemanager.geographical.GeoUtils;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.firebase.database.Exclude;
-
 import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
@@ -18,6 +17,8 @@ import java.util.UUID;
  *
  * Created by Jonathan on 27/08/2016.
  */
+@com.google.firebase.firestore.IgnoreExtraProperties
+@com.google.firebase.database.IgnoreExtraProperties
 public class DBObject implements Serializable {
     private String name;
     private AviLocation aviLocation;
@@ -110,12 +111,14 @@ public class DBObject implements Serializable {
         return aviLocation;
     }
 
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public void setBuoyType(BuoyType buoyType) {
         this.buoyType = buoyType;
     }
 
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public BuoyType getBuoyType() {
         return buoyType;
     }
@@ -128,22 +131,26 @@ public class DBObject implements Serializable {
         this.buoyType = BuoyType.valueOf(type);
     }
 
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public UUID getRaceCourseUUID() {
         return raceCourseUUID;
     }
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public void setRaceCourseUUID(UUID raceCourseUUID) {
         this.raceCourseUUID = raceCourseUUID;
     }
 
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public UUID getUUID() {
         return uuid;
     }
 
     public void setRCUuidString(String uuid) {
-        this.raceCourseUUID = UUID.fromString(uuid);
+        if (!GeneralUtils.isStringNullOrEmpty(uuid))
+            this.raceCourseUUID = UUID.fromString(uuid);
     }
     public String getRCUuidString() {
         if (raceCourseUUID !=null)
@@ -159,12 +166,14 @@ public class DBObject implements Serializable {
     }
 
 
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public Date getLeftEventAsDate(){
         if (leftEvent==null) return null;
         return new Date(leftEvent);
     }
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public void setLeftEvent(Date leftEvent) {
         if (leftEvent==null) {
             this.leftEvent = null;
@@ -172,41 +181,47 @@ public class DBObject implements Serializable {
         }
         this.leftEvent = leftEvent.getTime();
     }
-    public void setLeftEvent(long leftEvent) {
-        this.leftEvent = leftEvent;
-    }
+//    public void setLeftEvent(long leftEvent) {
+//        this.leftEvent = leftEvent;
+//    }
     public Long getLeftEvent(){
         return leftEvent;
     }
 
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public Date getLastUpdate() {
         if (lastUpdate==null)
             return null;
         return new Date(lastUpdate);
     }
 
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public void setLastUpdate(Date lastUpdate) {
         this.lastUpdate = lastUpdate.getTime();
     }
 
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public void setLoc(Location loc) {
         this.aviLocation = GeoUtils.toAviLocation(loc);
     }
 
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public Location getLoc() {
         return GeoUtils.toLocation(aviLocation);
     }
 
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public LatLng getLatLng() {
         return GeoUtils.toLatLng(aviLocation);
     }
 
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public int getIconResourceId() {
         if (this.getBuoyType() == BuoyType.FLAG_BUOY || this.getBuoyType() == BuoyType.FINISH_LINE || this.getBuoyType() == BuoyType.START_LINE || this.getBuoyType() == BuoyType.START_FINISH_LINE) {
             switch (this.color) {

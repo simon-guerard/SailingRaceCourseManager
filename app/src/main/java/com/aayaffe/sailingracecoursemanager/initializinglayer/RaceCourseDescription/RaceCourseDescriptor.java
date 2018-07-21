@@ -1,7 +1,7 @@
 package com.aayaffe.sailingracecoursemanager.initializinglayer.RaceCourseDescription;
 
 import com.aayaffe.sailingracecoursemanager.R;
-import com.google.firebase.database.Exclude;
+
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -14,7 +14,8 @@ import java.util.UUID;
  *
  * Created by Amit Y. on 29/12/2016.
  */
-
+@com.google.firebase.firestore.IgnoreExtraProperties
+@com.google.firebase.database.IgnoreExtraProperties
 public class RaceCourseDescriptor implements Serializable{
     public String name;
     public int imageID = R.drawable.racecourse_optimist;
@@ -35,12 +36,14 @@ public class RaceCourseDescriptor implements Serializable{
         return this.uuid.toString();
     }
 
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public Date getLastUpdate() {
         return new Date(lastUpdate);
     }
 
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public void setLastUpdate(Date lastUpdate) {
         this.lastUpdate = lastUpdate.getTime();
     }
@@ -57,7 +60,8 @@ public class RaceCourseDescriptor implements Serializable{
         return legDescriptors;
     }
 
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public String[] getLegsNames() {
         String[] names = new String[legDescriptors.size()];
         for(int i = 0; i< legDescriptors.size(); i++){

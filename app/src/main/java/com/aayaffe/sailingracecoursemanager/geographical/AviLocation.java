@@ -1,9 +1,5 @@
 package com.aayaffe.sailingracecoursemanager.geographical;
 
-//import android.location.Location;
-
-import com.google.firebase.database.Exclude;
-
 import java.io.Serializable;
 import java.util.Date;
 
@@ -12,12 +8,15 @@ import java.util.Date;
  *
  * Created by Amit Y. on 09/01/2016.
  */
-public class AviLocation implements Serializable {
+
+@com.google.firebase.firestore.IgnoreExtraProperties
+@com.google.firebase.database.IgnoreExtraProperties
+public class AviLocation implements Serializable{
     public double lat;
     public double lon;
     public double sog = 0;
     public float cog = 0;
-    public Long lastUpdate;
+    public long lastUpdate;
 
     public AviLocation() {
         //Empty constructor for FireBase.
@@ -139,28 +138,36 @@ public class AviLocation implements Serializable {
         result = 31 * result + (cog != +0.0f ? Float.floatToIntBits(cog) : 0);
         return result;
     }
-
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public double getLat() {
         return lat;
     }
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public double getLon() {
         return lon;
     }
-
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public AviLocation setLat(double Lat) {
         this.lat=Lat;
         return this;
     }
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public AviLocation setLon(double Lng) {
         this.lon=Lng;
         return this;
     }
 
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public Date getLastUpdate() {
         return new Date(lastUpdate);
     }
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public void setLastUpdate(Date lastUpdate) {
         this.lastUpdate = lastUpdate.getTime();
     }

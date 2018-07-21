@@ -12,6 +12,8 @@ import com.aayaffe.sailingracecoursemanager.R;
 import com.aayaffe.sailingracecoursemanager.Users.User;
 import com.aayaffe.sailingracecoursemanager.Users.Users;
 import com.aayaffe.sailingracecoursemanager.events.Event;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserInfo;
@@ -20,6 +22,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -37,7 +40,7 @@ public class FirebaseBackgroundService extends Service {
     private static final String TAG = "FirebaseBackgroundServi";
     private Users users;
     private boolean connected = false;
-
+    private FireStoreUsers usersDb;
 
 
     @Override
@@ -50,6 +53,7 @@ public class FirebaseBackgroundService extends Service {
         super.onCreate();
         Users.Init(FirebaseDB.getInstance(this), PreferenceManager.getDefaultSharedPreferences(this));
         users = Users.getInstance();
+        usersDb = new FireStoreUsers();
         FirebaseDB.getInstance(FirebaseBackgroundService.this).fb = FirebaseDatabase.getInstance()
                 .getReferenceFromUrl(this.getString(R.string.firebase_database_url));
         FirebaseDB.getInstance(FirebaseBackgroundService.this).fb.addValueEventListener(new ValueEventListener() {
@@ -58,7 +62,16 @@ public class FirebaseBackgroundService extends Service {
                 Log.d(TAG, "in onDataChange");
                 FirebaseDB.ds = dataSnapshot;
                 if (users.getCurrentUser() == null) {
-                    Users.setCurrentUser(FirebaseDB.getInstance(FirebaseBackgroundService.this).findUser(FirebaseDB.getInstance(FirebaseBackgroundService.this).getLoggedInUid()));
+                    usersDb.getUser(FirebaseDB.getInstance(FirebaseBackgroundService.this).getLoggedInUid(), new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if (task.isSuccessful()) {
+                                User u = task.getResult().toObject(User.class);
+                                Users.setCurrentUser(u);
+                            }
+                        }
+                    });
+//                    Users.setCurrentUser(FirebaseDB.getInstance(FirebaseBackgroundService.this).findUser(FirebaseDB.getInstance(FirebaseBackgroundService.this).getLoggedInUid()));
                 }
                 if ((FirebaseDB.getInstance(FirebaseBackgroundService.this).listeneres != null) && (!connected)) {
                     for (CommManagerEventListener listener : FirebaseDB.getInstance(FirebaseBackgroundService.this).listeneres) {
@@ -67,7 +80,7 @@ public class FirebaseBackgroundService extends Service {
                     }
                 }
                 else{
-                    Log.e(TAG, "no listeners registered");
+                    Log.v(TAG, "no listeners registered");
                 }
                 connected = true;
             }

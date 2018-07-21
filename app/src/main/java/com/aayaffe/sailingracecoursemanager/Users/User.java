@@ -1,7 +1,5 @@
 package com.aayaffe.sailingracecoursemanager.Users;
 
-import com.google.firebase.database.Exclude;
-
 import java.util.Date;
 
 /**
@@ -9,25 +7,31 @@ import java.util.Date;
  *
  * Created by Amit Y. on 17/02/2016.
  */
+@com.google.firebase.firestore.IgnoreExtraProperties
+@com.google.firebase.database.IgnoreExtraProperties
 public class User{
     public String Uid;
     public String DisplayName;
     //public String Email;
     public Long joined;
     public Long lastConnection;
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public Date getJoined() {
         return new Date(joined);
     }
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public void setJoined(Date joined) {
         this.joined = joined.getTime();
     }
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public Date getLastConnection() {
         return new Date(lastConnection);
     }
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public void setLastConnection(Date lastConnection) {
         this.lastConnection = lastConnection.getTime();
     }

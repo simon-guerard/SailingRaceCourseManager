@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -33,6 +34,7 @@ import com.aayaffe.sailingracecoursemanager.Map_Layer.MapClickMethods;
 import com.aayaffe.sailingracecoursemanager.calclayer.DBObject;
 import com.aayaffe.sailingracecoursemanager.calclayer.BuoyType;
 import com.aayaffe.sailingracecoursemanager.calclayer.RaceCourse;
+import com.aayaffe.sailingracecoursemanager.db.FireStoreEvents;
 import com.aayaffe.sailingracecoursemanager.db.FirebaseDB;
 import com.aayaffe.sailingracecoursemanager.dialogs.AccessCodeShowDialog;
 import com.aayaffe.sailingracecoursemanager.dialogs.BuoyInputDialog;
@@ -53,9 +55,14 @@ import com.aayaffe.sailingracecoursemanager.initializinglayer.RaceCourseDescript
 import com.aayaffe.sailingracecoursemanager.initializinglayer.RaceCourseDescription.RaceCourseDescriptor;
 import com.crashlytics.android.Crashlytics;
 import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import org.jetbrains.annotations.Contract;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -84,6 +91,7 @@ public class GoogleMapsActivity extends /*FragmentActivity*/AppCompatActivity im
     }
 
     private static IDBManager commManager;
+    private FireStoreEvents eventsDB;
     private DialogFragment df;
     private static String currentEventName;
     private boolean firstBoatLoad = true;
@@ -107,7 +115,7 @@ public class GoogleMapsActivity extends /*FragmentActivity*/AppCompatActivity im
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         sharedPreferences.registerOnSharedPreferenceChangeListener(unc);
         commManager = FirebaseDB.getInstance(this);
-        //commManager.login();
+        eventsDB = new FireStoreEvents();
         Users.Init(commManager,sharedPreferences);
         users = Users.getInstance();
         mapLayer = new GoogleMaps();
@@ -140,11 +148,28 @@ public class GoogleMapsActivity extends /*FragmentActivity*/AppCompatActivity im
 
     private void setReturnedToEvent() {
         if(users.getCurrentUser()!=null) {
-            myBoat = commManager.getBoatByUserUid(users.getCurrentUser().Uid);
-            if (myBoat!=null) {
-                myBoat.setLeftEvent(null);
-                commManager.writeBoatObject(myBoat);
-            }
+            //myBoat = commManager.getBoatByUserUid(users.getCurrentUser().Uid);
+            eventsDB.getBoatByUserUid(commManager.getCurrentEvent().getUuid(), users.getCurrentUser().Uid, new OnCompleteListener<QuerySnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                    if (task.isSuccessful()) {
+                        for (DocumentSnapshot document : task.getResult()) {
+                            myBoat = document.toObject(DBObject.class);
+                            break;
+                        }
+                        if (myBoat!=null) {
+                            myBoat.setLeftEvent(null);
+                            eventsDB.writeBoatObject(myBoat);
+                        }
+                    } else {
+                        Log.e(TAG, "Cannot get boat from firestore");
+                    }
+                }
+            });
+//            if (myBoat!=null) {
+//                myBoat.setLeftEvent(null);
+//                commManager.writeBoatObject(myBoat);
+//            }
         }
     }
 
@@ -405,20 +430,41 @@ public class GoogleMapsActivity extends /*FragmentActivity*/AppCompatActivity im
         public void run() {
             if (users.getCurrentUser()== null) Log.e(TAG,"Current user is null");
             if ((users.getCurrentUser() != null) && (commManager.getAllBoats() != null) && !viewOnly) {
-                myBoat = commManager.getBoatByUserUid(users.getCurrentUser().Uid);
-                if (myBoat == null) {
-                    myBoat = new DBObject(users.getCurrentUser().DisplayName, GeoUtils.toAviLocation(iGeo.getLoc()), Color.BLUE, BuoyType.MARK_LAYER);//TODO Set color properly
-                    if (isCurrentEventManager(users.getCurrentUser().Uid)) {
-                        myBoat.setBuoyType(BuoyType.RACE_OFFICER);
-                    } else myBoat.setBuoyType(BuoyType.MARK_LAYER);
-                    myBoat.userUid = users.getCurrentUser().Uid;
-                    myBoat.setLeftEvent(null);
-                    commManager.writeBoatObject(myBoat);
-                }
-//                myBoat.setLoc(iGeo.getLoc());
-//                myBoat.lastUpdate = new Date().getTime();
-//                myBoat.setLeftEvent(null);
-//                commManager.writeBoatObject(myBoat);
+//                myBoat = commManager.getBoatByUserUid(users.getCurrentUser().Uid);
+                eventsDB.getBoatByUserUid(commManager.getCurrentEvent().getUuid(), users.getCurrentUser().Uid, new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (DocumentSnapshot document : task.getResult()) {
+                                myBoat = document.toObject(DBObject.class);
+                                break;
+                            }
+                            if (myBoat == null) {
+                                myBoat = new DBObject(users.getCurrentUser().DisplayName, GeoUtils.toAviLocation(iGeo.getLoc()), Color.BLUE, BuoyType.MARK_LAYER);//TODO Set color properly
+                                if (isCurrentEventManager(users.getCurrentUser().Uid)) {
+                                    myBoat.setBuoyType(BuoyType.RACE_OFFICER);
+                                } else myBoat.setBuoyType(BuoyType.MARK_LAYER);
+                                myBoat.userUid = users.getCurrentUser().Uid;
+                                myBoat.setLeftEvent(null);
+                                commManager.writeBoatObject(myBoat);
+                                eventsDB.writeBoatObject(myBoat);
+                            }
+                        } else {
+                            Log.e(TAG, "Cannot get boat from firestore");
+                        }
+                    }
+                });
+//                if (myBoat == null) {
+//                    AviLocation al = GeoUtils.toAviLocation(iGeo.getLoc());
+//                    myBoat = new DBObject(users.getCurrentUser().DisplayName, al, Color.BLUE, BuoyType.MARK_LAYER);//TODO Set color properly
+//                    if (isCurrentEventManager(users.getCurrentUser().Uid)) {
+//                        myBoat.setBuoyType(BuoyType.RACE_OFFICER);
+//                    } else myBoat.setBuoyType(BuoyType.MARK_LAYER);
+//                    myBoat.userUid = users.getCurrentUser().Uid;
+//                    myBoat.setLeftEvent(null);
+//                    commManager.writeBoatObject(myBoat);
+//                    eventsDB.writeBoatObject(myBoat);
+//                }
             }
             if (((OwnLocation) iGeo).isGPSFix()) {
                 noGps.setVisibility(View.INVISIBLE);
@@ -686,7 +732,7 @@ public class GoogleMapsActivity extends /*FragmentActivity*/AppCompatActivity im
                 GPSService.LocalBinder binder = (GPSService.LocalBinder) service;
                 mService = binder.getService();
                 mBound = true;
-                mService.update(Integer.parseInt(sharedPreferences.getString("refreshRate", "5")) * 1000, myBoat, commManager.getCurrentEvent(), commManager, iGeo, users.getCurrentUser().Uid);
+                mService.update(Integer.parseInt(sharedPreferences.getString("refreshRate", "5")) * 1000, myBoat, commManager.getCurrentEvent(), commManager, eventsDB, iGeo, users.getCurrentUser().Uid);
             }
         }
 

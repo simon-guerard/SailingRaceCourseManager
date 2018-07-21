@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -23,6 +24,8 @@ import android.widget.Toast;
 
 import com.aayaffe.sailingracecoursemanager.adapters.EventsListAdapter;
 import com.aayaffe.sailingracecoursemanager.BuildConfig;
+import com.aayaffe.sailingracecoursemanager.db.FireStoreEvents;
+import com.aayaffe.sailingracecoursemanager.db.FireStoreUsers;
 import com.aayaffe.sailingracecoursemanager.dialogs.AccessCodeInputDialog;
 import com.aayaffe.sailingracecoursemanager.dialogs.AccessCodeShowDialog;
 import com.aayaffe.sailingracecoursemanager.events.Event;
@@ -33,12 +36,16 @@ import com.aayaffe.sailingracecoursemanager.dialogs.EventInputDialog;
 import com.aayaffe.sailingracecoursemanager.dialogs.OneTimeAlertDialog;
 import com.aayaffe.sailingracecoursemanager.general.Analytics;
 import com.aayaffe.sailingracecoursemanager.general.GeneralUtils;
+import com.aayaffe.sailingracecoursemanager.geographical.AviLocation;
 import com.crashlytics.android.Crashlytics;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.database.FirebaseListAdapter;
 import com.firebase.ui.database.FirebaseListOptions;
 import com.google.android.gms.common.Scopes;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.tenmiles.helpstack.HSHelpStack;
 
 import java.util.ArrayList;
@@ -51,6 +58,7 @@ public class ChooseEventActivity extends AppCompatActivity implements EventInput
 
     private static final String TAG = "ChooseEventActivity";
     private FirebaseDB commManager;
+    private FireStoreEvents eventsDB;
     private FirebaseListAdapter<Event> mAdapter;
     private Users users;
     private Event selectedEvent;
@@ -60,6 +68,7 @@ public class ChooseEventActivity extends AppCompatActivity implements EventInput
     private Menu menu;
     private SharedPreferences sharedPreferences;
     private DialogFragment df;
+    private FireStoreUsers usersDb;
 
 
     @Override
@@ -69,7 +78,8 @@ public class ChooseEventActivity extends AppCompatActivity implements EventInput
         analytics = new Analytics(this);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         commManager = FirebaseDB.getInstance(this);
-        //commManager.login();
+        eventsDB = new FireStoreEvents();
+        usersDb = new FireStoreUsers();
         Users.Init(commManager,sharedPreferences);
         users = Users.getInstance();
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -81,7 +91,7 @@ public class ChooseEventActivity extends AppCompatActivity implements EventInput
                 .setLayout(R.layout.three_line_list_item)
                 .setQuery(commManager.getFireBaseRef().child(getString(R.string.db_events)), Event.class)
                 .build();
-        mAdapter = new EventsListAdapter(options,this,commManager,users);
+        mAdapter = new EventsListAdapter(options,this,commManager, usersDb, users);
         mAdapter.startListening();
         eventsView.setAdapter(mAdapter);
         eventsView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -98,12 +108,19 @@ public class ChooseEventActivity extends AppCompatActivity implements EventInput
     private void eventPressed(boolean viewOnly, Event e){
         selectedEvent = e;
         if (selectedEvent.accessCode == null || selectedEvent.accessCode.isEmpty()){
+            //Not secure event (TODO: Will phase out in the future, remove)
             enterEvent(viewOnly);
         }
-        else if (viewOnly ||selectedEvent.getManagerUuid().equals(commManager.getLoggedInUid()) || (selectedEvent.getBoats().containsKey(commManager.getLoggedInUid()))) {
+        else if (viewOnly ||selectedEvent.getManagerUuid().equals(commManager.getLoggedInUid())) {
+            // view only (administrators) or race committee log in
+            enterEvent(viewOnly);
+        }
+        else if ((selectedEvent.getBoats()!= null) && (selectedEvent.getBoats().containsKey(commManager.getLoggedInUid()))){
+            //Second time login to secure event.
             enterEvent(viewOnly);
         }
         else {
+            //First time log in to secure event, requires access code
             df = AccessCodeInputDialog.newInstance(this);
             df.show(getFragmentManager(), "Enter_Access_Code");
         }
@@ -111,6 +128,7 @@ public class ChooseEventActivity extends AppCompatActivity implements EventInput
     private void enterEvent(boolean viewOnly){
         Intent intent = new Intent(getApplicationContext(), GoogleMapsActivity.class);
         commManager.setCurrentEvent(selectedEvent);
+        eventsDB.setCurrentEvent(selectedEvent);
         intent.putExtra("eventName", selectedEvent.getName());
         intent.putExtra("viewOnly", viewOnly);
         startActivity(intent);
@@ -213,6 +231,12 @@ public class ChooseEventActivity extends AppCompatActivity implements EventInput
             case R.id.action_feedback:
                 Log.d(TAG, "Give feedback pressed");
                 new Doorbell(this, 5756, getString(R.string.doorbellioKey)).show();
+//                eventsDB.readAviLocation(new OnCompleteListener<DocumentSnapshot>() {
+//                    @Override
+//                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+//                        Log.d(TAG,task.getResult().toString());
+//                    }
+//                });
                 return true;
             case R.id.action_logout:
                 if (loggedIn) {
@@ -220,6 +244,9 @@ public class ChooseEventActivity extends AppCompatActivity implements EventInput
                     enableLogin(menu, true);
                 }
                 else startLoginActivity();
+
+//                AviLocation al = new AviLocation(3.2,4.2);
+//                eventsDB.writeAviLocation(al);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -310,6 +337,7 @@ public class ChooseEventActivity extends AppCompatActivity implements EventInput
             e.dayEnd = dayEnd;
             e.accessCode = Event.generateAccessCode();
             commManager.writeEvent(e);
+            eventsDB.writeEvent(e);
             Calendar start = Calendar.getInstance();
             start.set(yearStart,monthStart,dayStart);
             Calendar end = Calendar.getInstance();

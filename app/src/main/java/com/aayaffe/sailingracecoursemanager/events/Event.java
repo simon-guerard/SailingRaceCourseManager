@@ -13,9 +13,12 @@ import java.util.UUID;
  *
  * Created by Amit Y. on 19/02/2016.
  */
+@com.google.firebase.firestore.IgnoreExtraProperties
+@com.google.firebase.database.IgnoreExtraProperties
 public class Event {
     private String name;
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     private UUID _uuid;
     private int lastBuoyId;
     private String eventManager;

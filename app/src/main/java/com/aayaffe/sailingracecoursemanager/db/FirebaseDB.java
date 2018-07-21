@@ -45,9 +45,7 @@ public class FirebaseDB implements IDBManager {
     private EventDeleted eventDeleted;
     private final Context c;
     private String uid;
-    private final Users users;
     public final List<CommManagerEventListener> listeneres = new ArrayList<>();
-    private boolean connected = false;
     private static FirebaseDB db;
 
     public static FirebaseDB getInstance(Context c){
@@ -60,7 +58,6 @@ public class FirebaseDB implements IDBManager {
     private FirebaseDB(Context c) {
         this.c = c;
         Users.Init(this, PreferenceManager.getDefaultSharedPreferences(c));
-        users = Users.getInstance();
     }
 
     @Override

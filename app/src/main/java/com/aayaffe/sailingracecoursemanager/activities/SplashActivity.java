@@ -4,16 +4,23 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
 import com.aayaffe.sailingracecoursemanager.R;
+import com.aayaffe.sailingracecoursemanager.Users.User;
 import com.aayaffe.sailingracecoursemanager.db.CommManagerEventListener;
+import com.aayaffe.sailingracecoursemanager.db.FireStoreUsers;
 import com.aayaffe.sailingracecoursemanager.db.FirebaseBackgroundService;
 import com.aayaffe.sailingracecoursemanager.db.FirebaseDB;
 import com.aayaffe.sailingracecoursemanager.db.IDBManager;
 import com.aayaffe.sailingracecoursemanager.dialogs.DialogUtils;
 import com.aayaffe.sailingracecoursemanager.general.Versioning;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 
 import java.util.Date;
 
@@ -23,10 +30,12 @@ public class SplashActivity extends AppCompatActivity {
     private Versioning versioning;
     private CommManagerEventListener onConnectEventListener;
     private IDBManager commManager;
+    private FireStoreUsers usersDb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        usersDb = new FireStoreUsers();
         versioning = new Versioning(this);
         Intent serviceIntent = new Intent(this,FirebaseBackgroundService.class);
         startService(serviceIntent);

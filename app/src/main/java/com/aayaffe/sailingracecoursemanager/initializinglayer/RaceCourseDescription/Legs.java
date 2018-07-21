@@ -22,6 +22,8 @@ import java.util.UUID;
  *
  * Created by Amit Y. on 29/12/2016.
  */
+@com.google.firebase.firestore.IgnoreExtraProperties
+@com.google.firebase.database.IgnoreExtraProperties
 public class Legs implements Serializable{
     private static final String TAG = "LEGS";
     public String name;
@@ -55,7 +57,8 @@ public class Legs implements Serializable{
      * @param dt Relative parts or absolute parts.
      * @return The distance required (absolute in NM or relative to distance to M1)
      */
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+@com.google.firebase.database.Exclude
     public double GetLength(MarkRoundingOrder mro, Boat.PointOfSail pos, DistanceType dt) throws RaceCourseException {
         double abs = 0;
         double rel = 0;
@@ -141,7 +144,8 @@ public class Legs implements Serializable{
      *
      * Each Mark is a tree root to marks that uses it's location, so this function must act recursively
      */
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+@com.google.firebase.database.Exclude
     public List<DBObject> parseBuoys(AviLocation rcLocation, double dist2m1, int windDir, float startLineLength,float gateLength, UUID raceCourseUUID, Map<String, Boolean> selectedOptions) throws RaceCourseException {  //parses the mark and his sons into buoys
         List<DBObject> buoys = new ArrayList<>();
         Map<Integer,AviLocation> id2Location = new HashMap();

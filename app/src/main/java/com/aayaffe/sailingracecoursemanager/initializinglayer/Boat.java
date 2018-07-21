@@ -1,13 +1,14 @@
 
 package com.aayaffe.sailingracecoursemanager.initializinglayer;
 
-import com.google.firebase.database.Exclude;
 
 /**
  * Avi Marine Innovations - www.avimarine.in
  *
  * Created by Jonathan on 16/08/2016.
  */
+@com.google.firebase.firestore.IgnoreExtraProperties
+@com.google.firebase.database.IgnoreExtraProperties
 public class Boat {
     private String boatClass;  //class boatClass
     private int targettime;  //class default time
@@ -88,7 +89,8 @@ public class Boat {
      * @param wind in knots
      * @return WindSpeed value, null if wind<0
      */
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+   @com.google.firebase.database.Exclude
     public static Boat.WindSpeed wind2Index(double wind){  //index the wind strength. knots to right index at the boat's vmg table.
         if (wind<0)
             return null;
@@ -106,7 +108,8 @@ public class Boat {
      * @param windDir
      * @return point of sail. null if windDir < 0
      */
-    @Exclude
+    @com.google.firebase.firestore.Exclude
+    @com.google.firebase.database.Exclude
     public static Boat.PointOfSail dir2PointOfSail(int windDir){
         if(windDir<0) return null;
         windDir = windDir % 360;

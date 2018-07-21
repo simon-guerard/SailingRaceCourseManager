@@ -2,6 +2,7 @@ package com.aayaffe.sailingracecoursemanager.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -13,16 +14,22 @@ import android.widget.TextView;
 
 import com.aayaffe.sailingracecoursemanager.calclayer.DBObject;
 import com.aayaffe.sailingracecoursemanager.R;
+import com.aayaffe.sailingracecoursemanager.db.FireStoreEvents;
 import com.aayaffe.sailingracecoursemanager.db.FirebaseDB;
 import com.firebase.ui.database.FirebaseListAdapter;
 import com.firebase.ui.database.FirebaseListOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentSnapshot;
 
+import java.text.DateFormat;
 import java.util.List;
 
 public class AssignBuoyActivity extends AppCompatActivity {
 
     private static final String TAG = "AssignBuoyActivity";
     private FirebaseDB commManager;
+    private FireStoreEvents eventsDb = new FireStoreEvents();
     private FirebaseListAdapter<DBObject> mAdapter;
     private DBObject currentBoat;
     @Override
@@ -31,7 +38,20 @@ public class AssignBuoyActivity extends AppCompatActivity {
         setContentView(R.layout.activity_assign_buoy);
         commManager = FirebaseDB.getInstance(this);
         Intent i = getIntent();
-        currentBoat = commManager.getBoat(i.getStringExtra("boatUid"));
+        //currentBoat = commManager.getBoat(i.getStringExtra("boatUid"));
+        eventsDb.getBoat(commManager.getCurrentEvent().getUuid(),i.getStringExtra("boatUid"), new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    currentBoat = document.toObject(DBObject.class);
+                }
+                else {
+                    Log.e(TAG, "Cannot find Boat");
+                }
+            }
+        });
+
         setupToolbar();
         ListView boatsView = (ListView) findViewById(R.id.BuoysList);
         FirebaseListOptions<DBObject> options = new FirebaseListOptions.Builder<DBObject>()
@@ -65,10 +85,13 @@ public class AssignBuoyActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //String selectedBuoyName = ((TextView)view.findViewById(android.R.id.text1)).getText().toString();
                 DBObject dbo = (DBObject) parent.getItemAtPosition(position);
-                commManager.assignBuoy(currentBoat,dbo.getUuidString());
+                if (currentBoat!=null) {
+                    commManager.assignBuoy(currentBoat, dbo.getUuidString());
+                }
                 onBackPressed();
             }
         });
+
     }
 
     private void removeAssignment(DBObject b) {

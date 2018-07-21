@@ -3,6 +3,7 @@ package com.aayaffe.sailingracecoursemanager.geographical;
 import android.location.Location;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.firebase.firestore.GeoPoint;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -155,6 +156,12 @@ public class GeoUtils {
         long diffInMs = new Date().getTime() - d.getTime();
         return TimeUnit.MILLISECONDS.toSeconds(diffInMs);
     }
+
+//    public static GeoPoint toGeoPoint(AviLocation aviLocation) {
+//        if (aviLocation==null)
+//            return null;
+//        return new GeoPoint(aviLocation.getLat(),aviLocation.getLon());
+//    }
 }
 enum LengthUnit {
     /**
