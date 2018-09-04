@@ -60,11 +60,6 @@ public class FirebaseDB implements IDBManager {
         Users.Init(this, PreferenceManager.getDefaultSharedPreferences(c));
     }
 
-    @Override
-    public int login() {
-        return 0;
-    }
-
     public void setUser() {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         setUser(auth.getCurrentUser());

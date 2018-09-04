@@ -11,6 +11,7 @@ import android.util.Log;
 import com.aayaffe.sailingracecoursemanager.activities.GoogleMapsActivity;
 import com.aayaffe.sailingracecoursemanager.calclayer.DBObject;
 import com.aayaffe.sailingracecoursemanager.R;
+import com.aayaffe.sailingracecoursemanager.db.FireStoreEvents;
 import com.aayaffe.sailingracecoursemanager.general.GeneralUtils;
 import com.aayaffe.sailingracecoursemanager.geographical.GeoUtils;
 
@@ -50,11 +51,13 @@ public class GoogleMaps implements GoogleMap.OnInfoWindowClickListener, GoogleMa
     public DialogFragment df;
     private Polyline polyline;
     private Activity activity;
+    private FireStoreEvents eventsDb;
 
     public void Init(Activity a, Context c, SharedPreferences sp, MapClickMethods mcm) {
         this.clickMethods = mcm;
         this.c = c;
         this.activity = a;
+        eventsDb = new FireStoreEvents();
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) ((FragmentActivity) a).getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -191,7 +194,8 @@ public class GoogleMaps implements GoogleMap.OnInfoWindowClickListener, GoogleMa
         if (m != null) {
             m.remove();
             if (removeFromDB) {
-                GoogleMapsActivity.getCommManager().removeBuoyObject(uuid.toString());
+                eventsDb.removeBuoyObject(GoogleMapsActivity.getCommManager().getCurrentEvent().getUuid(),uuid.toString());
+                //GoogleMapsActivity.getCommManager().removeBuoyObject(uuid.toString());
             }
             uuidToMarker.remove(uuid);
             uuidToId.remove(uuid);

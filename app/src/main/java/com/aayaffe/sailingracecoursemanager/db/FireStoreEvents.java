@@ -9,6 +9,7 @@ import com.aayaffe.sailingracecoursemanager.events.Event;
 import com.aayaffe.sailingracecoursemanager.general.GeneralUtils;
 import com.aayaffe.sailingracecoursemanager.geographical.AviLocation;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -19,6 +20,7 @@ import com.google.firebase.storage.FirebaseStorage;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * This file is part of an
@@ -51,16 +53,18 @@ public class FireStoreEvents {
         dr.set(neu);
     }
 
-    public int writeBoatObject(DBObject o) {
-        if (o == null || o.userUid == null || o.userUid.isEmpty() || currentEvent == null)
-            return -1;
-        if (/*isEventExist(currentEvent)*/true /*TODO:Check for event existence*/) {
+    public void writeBoatObject(DBObject o) {
+        if (o == null || o.userUid == null || o.userUid.isEmpty() || currentEvent == null) {
+            Log.e(TAG,"Error writing boat");
+            return;
+        }
+        try {
             DocumentReference dr = getEventBoatsCollection(currentEvent.getUuid()).document(o.userUid);
             dr.set(o);
             Log.v(TAG, "writeBoatObject has written boat:" + o.getName());
-            return 0;
+        }catch (Exception e){
+            Log.e(TAG,"Error writing boat", e);
         }
-        return -1;
     }
 
     public void getBoat(String eventUuid, String uuid, OnCompleteListener<DocumentSnapshot> listener) {
@@ -94,6 +98,50 @@ public class FireStoreEvents {
         dr.update(updateMap);
     }
 
+    public void getAllEventBoats(String eventUuid, OnCompleteListener<QuerySnapshot> listener) {
+        if (GeneralUtils.isNull(eventUuid,listener)){
+            Log.e(TAG, "Error getting event boats");
+            return;
+        }
+        getEventBoatsCollection(eventUuid).get().addOnCompleteListener(listener);
+    }
+    public void getAllEventBuoys(String eventUuid, OnCompleteListener<QuerySnapshot> listener) {
+        if (GeneralUtils.isNull(eventUuid,listener)){
+            Log.e(TAG, "Error getting event boats");
+            return;
+        }
+        getEventBuoysCollection(eventUuid).get().addOnCompleteListener(listener);
+    }
+    public void removeBoat(String eventUuid, UUID boatUuid) {
+        if (GeneralUtils.isNull(eventUuid,boatUuid)){
+            Log.e(TAG, "Error removing boats");
+            return;
+        }
+        getBoatByUUID(eventUuid, boatUuid, new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if(task.isSuccessful()){
+                    for (DocumentSnapshot ds: task.getResult()) {
+                        DBObject boat = ds.toObject(DBObject.class);
+                        getEventBoatsCollection(eventUuid).document(boat.userUid).delete();
+                    }
+                }
+            }
+        });
+    }
+
+    public void removeBuoyObject(String eventUuid,String buoyUuid) {
+        getEventBuoysCollection(eventUuid).document(buoyUuid).delete();
+    }
+
+    public void getBoatByUUID(String eventUuid, UUID u, OnCompleteListener<QuerySnapshot> listener) {
+        if (GeneralUtils.isNull(eventUuid,listener,u)){
+            Log.e(TAG, "Error getting event boats");
+            return;
+        }
+        getEventBoatsCollection(eventUuid).whereEqualTo("uuidString",u.toString()).get().addOnCompleteListener(listener);
+    }
+
     private CollectionReference getEventsCollection(){
         return mFirestore.collection("events");
     }
@@ -107,9 +155,15 @@ public class FireStoreEvents {
     private CollectionReference getEventBoatsCollection(@NonNull String uuid){
         return getEventDocument(uuid).collection("boats");
     }
+    @Nullable
+    private CollectionReference getEventBuoysCollection(@NonNull String uuid){
+        return getEventDocument(uuid).collection("buoys");
+    }
 
     public void setCurrentEvent(Event e) {
         currentEvent = e;
     }
+
+
 
 }

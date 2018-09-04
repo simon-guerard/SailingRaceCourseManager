@@ -429,8 +429,7 @@ public class GoogleMapsActivity extends /*FragmentActivity*/AppCompatActivity im
         @Override
         public void run() {
             if (users.getCurrentUser()== null) Log.e(TAG,"Current user is null");
-            if ((users.getCurrentUser() != null) && (commManager.getAllBoats() != null) && !viewOnly) {
-//                myBoat = commManager.getBoatByUserUid(users.getCurrentUser().Uid);
+            if ((users.getCurrentUser() != null) /*&& (commManager.getAllBoats() != null)*/ && !viewOnly) {
                 eventsDB.getBoatByUserUid(commManager.getCurrentEvent().getUuid(), users.getCurrentUser().Uid, new OnCompleteListener<QuerySnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
@@ -454,17 +453,6 @@ public class GoogleMapsActivity extends /*FragmentActivity*/AppCompatActivity im
                         }
                     }
                 });
-//                if (myBoat == null) {
-//                    AviLocation al = GeoUtils.toAviLocation(iGeo.getLoc());
-//                    myBoat = new DBObject(users.getCurrentUser().DisplayName, al, Color.BLUE, BuoyType.MARK_LAYER);//TODO Set color properly
-//                    if (isCurrentEventManager(users.getCurrentUser().Uid)) {
-//                        myBoat.setBuoyType(BuoyType.RACE_OFFICER);
-//                    } else myBoat.setBuoyType(BuoyType.MARK_LAYER);
-//                    myBoat.userUid = users.getCurrentUser().Uid;
-//                    myBoat.setLeftEvent(null);
-//                    commManager.writeBoatObject(myBoat);
-//                    eventsDB.writeBoatObject(myBoat);
-//                }
             }
             if (((OwnLocation) iGeo).isGPSFix()) {
                 noGps.setVisibility(View.INVISIBLE);
@@ -502,33 +490,55 @@ public class GoogleMapsActivity extends /*FragmentActivity*/AppCompatActivity im
     }
 
     public void drawMapComponents() {
-        boats = commManager.getAllBoats();
-        buoys = commManager.getAllBuoys();
-        if (isCurrentEventManager() && !viewOnly){
-            removeOldBoats(boats);
-        }
-        removeOldMarkers(boats, buoys);
-        for (DBObject boat : boats) {
-            if((boat==null)||(boat.getLoc() == null) || (users.getCurrentUser() == null)) continue;
-            if ((!isOwnObject(users.getCurrentUser().Uid, boat))) {
-                mapLayer.addMark(boat, getDirDistTXT(iGeo.getLoc(), boat.getLoc()), getIconId(users.getCurrentUser().Uid, boat), getZIndex(boat));
+        eventsDB.getAllEventBoats(commManager.getCurrentEvent().getUuid(), new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()){
+                    boats = new ArrayList<>();
+                    for(DocumentSnapshot ds : task.getResult()){
+                        boats.add(ds.toObject(DBObject.class));
+                    }
+                    if (isCurrentEventManager() && !viewOnly){
+                        removeOldBoats(boats);
+                    }
+                    for (DBObject boat : boats) {
+                        if((boat==null)||(boat.getLoc() == null) || (users.getCurrentUser() == null)) continue;
+                        if ((!isOwnObject(users.getCurrentUser().Uid, boat))) {
+                            mapLayer.addMark(boat, getDirDistTXT(iGeo.getLoc(), boat.getLoc()), getIconId(users.getCurrentUser().Uid, boat), getZIndex(boat));
+                        }
+                        if ((isOwnObject(users.getCurrentUser().Uid, boat))) {
+                            drawOwnBoat(boat);
+                        }
+                    }
+                }
             }
-            if ((isOwnObject(users.getCurrentUser().Uid, boat))) {
-                drawOwnBoat(boat);
+        });
+        eventsDB.getAllEventBuoys(commManager.getCurrentEvent().getUuid(), new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()){
+                    buoys = new ArrayList<>();
+                    for(DocumentSnapshot ds : task.getResult()){
+                        buoys.add(ds.toObject(DBObject.class));
+                    }
+                    removeOldMarkers(boats, buoys);
+
+                    for (DBObject buoy : buoys) {
+                        mapLayer.addBuoy(buoy, getDirDistTXT(iGeo.getLoc(), buoy.getLoc()));
+                    }
+                    if ((!buoys.isEmpty()) && (firstBoatLoad) && (mapLayer.mapView != null)) {
+                        firstBoatLoad = false;
+                        mapLayer.ZoomToMarks();
+                    } else if ((firstBoatLoad) && (mapLayer.mapView != null)){
+                        firstBoatLoad = false;
+                        if (myBoat!=null) {
+                            mapLayer.setZoom(10, myBoat.getLoc());
+                        }
+                    }
+                }
             }
-        }
-        for (DBObject buoy : buoys) {
-            mapLayer.addBuoy(buoy, getDirDistTXT(iGeo.getLoc(), buoy.getLoc()));
-        }
-        if ((!buoys.isEmpty()) && (firstBoatLoad) && (mapLayer.mapView != null)) {
-            firstBoatLoad = false;
-            mapLayer.ZoomToMarks();
-        } else if ((firstBoatLoad) && (mapLayer.mapView != null)){
-            firstBoatLoad = false;
-            if (myBoat!=null) {
-                mapLayer.setZoom(10, myBoat.getLoc());
-            }
-        }
+        });
+
     }
 
     private synchronized void drawOwnBoat(DBObject boat) {
@@ -553,10 +563,14 @@ public class GoogleMapsActivity extends /*FragmentActivity*/AppCompatActivity im
             }
         }
         for(UUID u: boatsToRemove){
-            commManager.removeBoat(u);
+            eventsDB.removeBoat(commManager.getCurrentEvent().getUuid(),u);
         }
     }
     private void removeOldMarkers(List<DBObject> boats, List<DBObject> buoys) {
+        if (GeneralUtils.isNull(boats,buoys)) {
+            Log.e(TAG, "Error removing old markers");
+            return;
+        }
         List<UUID> uuids = new LinkedList<>();
         for (DBObject b : boats) {
             uuids.add(b.getUUID());

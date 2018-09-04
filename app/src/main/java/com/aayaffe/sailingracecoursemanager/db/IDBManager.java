@@ -19,7 +19,6 @@ import java.util.UUID;
  * Created by Amit Y. on 22/09/2015.
  */
 public interface IDBManager {
-    int login();
 
     void setCommManagerEventListener(CommManagerEventListener listener);
 

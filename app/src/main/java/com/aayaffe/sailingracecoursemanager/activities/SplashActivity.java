@@ -61,7 +61,6 @@ public class SplashActivity extends AppCompatActivity {
         };
         commManager = FirebaseDB.getInstance(this);
         commManager.setCommManagerEventListener(onConnectEventListener);
-        commManager.login();
     }
 
     @Override
